@@ -1,5 +1,4 @@
 import numpy as np
-import cv2
 import torch
 from differentiable_skeletonize import Skeletonize
 
@@ -10,33 +9,40 @@ the original clDice paper can be found here: https://arxiv.org/abs/2003.07311  h
 '''
 
 
-def opencv_skelitonize(img):
-    skel = np.zeros(img.shape, np.uint8)
-    img = img.astype(np.uint8)
-    size = np.size(img)
-    element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
-    done = False
-    while( not done):
-        eroded = cv2.erode(img,element)
-        temp = cv2.dilate(eroded,element)
-        temp = cv2.subtract(img,temp)
-        skel = cv2.bitwise_or(skel,temp)
-        img = eroded.copy()
-        zeros = size - cv2.countNonZero(img)
-        if zeros==size:
-            done = True
-    return skel
+# def opencv_skelitonize(img):
+#     skel = np.zeros(img.shape, np.uint8)
+#     img = img.astype(np.uint8)
+#     size = np.size(img)
+#     element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
+#     done = False
+#     while( not done):
+#         eroded = cv2.erode(img,element)
+#         temp = cv2.dilate(eroded,element)
+#         temp = cv2.subtract(img,temp)
+#         skel = cv2.bitwise_or(skel,temp)
+#         img = eroded.copy()
+#         zeros = size - cv2.countNonZero(img)
+#         if zeros==size:
+#             done = True
+#     return skel
 
 
 def dice_loss(pred, target):
     '''
-    inputs shape  (batch, channel, height, width).
+    inputs shape  (batch, channel, depth(optional), height, width).
     calculate dice loss per batch and channel of sample.
     E.g. if batch shape is [64, 1, 128, 128] -> [64, 1]
     '''
     smooth = 1.
-    iflat = pred.view(*pred.shape[:2], -1) #batch, channel, -1
-    tflat = target.view(*target.shape[:2], -1)
+    if pred.is_contiguous():
+        iflat = pred.view(*pred.shape[:2], -1) #batch, channel, -1
+    else:
+        iflat = pred.reshape(*pred.shape[:2], -1)
+
+    if target.is_contiguous():
+        tflat = target.view(*target.shape[:2], -1)
+    else:
+        tflat = target.reshape(*target.shape[:2], -1)
     intersection = (iflat * tflat).sum(-1)
     return -((2. * intersection + smooth) /
               (iflat.sum(-1) + tflat.sum(-1) + smooth))
@@ -56,7 +62,7 @@ def soft_skeletonize(x, thresh_width=10):
 
 def norm_intersection(center_line, vessel):
     '''
-    inputs shape  (batch, channel, height, width)
+    inputs shape  (batch, channel, depth, height, width)
     intersection formalized by first ares
     x - suppose to be centerline of vessel (pred or gt) and y - is vessel (pred or gt)
     '''
@@ -66,9 +72,10 @@ def norm_intersection(center_line, vessel):
     intersection = (clf * vf).sum(-1)
     return (intersection + smooth) / (clf.sum(-1) + smooth)
 
+
 def soft_cldice_loss(pred, target, target_skeleton=None):
     '''
-    inputs shape  (batch, channel, height, width).
+    inputs shape  (batch, channel, x, y, z).
     calculate clDice loss
     Because pred and target at moment of loss calculation will be a torch tensors
     it is preferable to calculate target_skeleton on the step of batch forming,
