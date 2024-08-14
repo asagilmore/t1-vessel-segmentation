@@ -3,7 +3,7 @@ from nnunetv2.training.loss.dice import SoftDiceLoss, MemoryEfficientSoftDiceLos
 from nnunetv2.training.loss.robust_ce_loss import RobustCrossEntropyLoss, TopKLoss
 from nnunetv2.utilities.helpers import softmax_helper_dim1
 from torch import nn
-from clDice import clDice
+from .clDice import clDice
 
 
 class DC_and_CE_loss(nn.Module):

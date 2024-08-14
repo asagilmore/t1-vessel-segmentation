@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from differentiable_skeletonize import Skeletonize
+from .differentiable_skeletonize import Skeletonize
 
 '''
 This code is modified from the clDice repository: https://github.com/dmitrysarov/clDice/blob/master/dice_helpers.py
