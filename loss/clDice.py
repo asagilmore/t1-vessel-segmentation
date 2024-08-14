@@ -67,8 +67,14 @@ def norm_intersection(center_line, vessel):
     x - suppose to be centerline of vessel (pred or gt) and y - is vessel (pred or gt)
     '''
     smooth = 1.
-    clf = center_line.view(*center_line.shape[:2], -1)
-    vf = vessel.view(*vessel.shape[:2], -1)
+    if center_line.is_contiguous():
+        clf = center_line.view(*center_line.shape[:2], -1)
+    else:
+        clf = center_line.reshape(*center_line.shape[:2], -1)
+    if vessel.is_contiguous():
+        vf = vessel.view(*vessel.shape[:2], -1)
+    else:
+        vf = vessel.reshape(*vessel.shape[:2], -1)
     intersection = (clf * vf).sum(-1)
     return (intersection + smooth) / (clf.sum(-1) + smooth)
 
