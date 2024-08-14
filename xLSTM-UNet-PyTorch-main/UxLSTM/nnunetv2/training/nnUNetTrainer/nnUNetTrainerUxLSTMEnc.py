@@ -1,10 +1,13 @@
-from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
+from nnunetv2.training.nnUNetTrainer.nnUNetTrainerCLD import nnUNetTrainerCLD
 from nnunetv2.utilities.plans_handling.plans_handler import ConfigurationManager, PlansManager
 from torch import nn
 from nnunetv2.nets.UxLSTMEnc_3d import get_uxlstm_enc_3d_from_plans
 from nnunetv2.nets.UxLSTMEnc_2d import get_uxlstm_enc_2d_from_plans
 
-class nnUNetTrainerUxLSTMEnc(nnUNetTrainer):
+
+##UPDATED TO HAVE CLD LOSS
+
+class nnUNetTrainerUxLSTMEnc(nnUNetTrainerCLD):
     @staticmethod
     def build_network_architecture(plans_manager: PlansManager,
                                    dataset_json,
@@ -21,7 +24,7 @@ class nnUNetTrainerUxLSTMEnc(nnUNetTrainer):
         else:
             raise NotImplementedError("Only 2D and 3D models are supported")
 
-        
+
         print("UxLSTMEnc: {}".format(model))
 
         return model
