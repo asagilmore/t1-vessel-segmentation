@@ -2,7 +2,7 @@ FROM pytorch/pytorch:latest
 
 RUN apt-get update && apt-get install -y build-essential git
 
-RUN git clone --branch clDice https://github.com/asagilmore/nnUNet.git /app/nnUNet
+RUN git clone --branch clDice_fast https://github.com/asagilmore/nnUNet.git /app/nnUNet
 
 RUN pip install -e /app/nnUNet
 
